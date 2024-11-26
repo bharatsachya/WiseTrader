@@ -15,38 +15,68 @@ def display_page():
     stock_ticker_key = f'{page_name}_stock_ticker'
     stock_ticker = st.text_input('Enter Stock Ticker', value='NV20.NS', key=stock_ticker_key)
 
-    data = df[['Open', 'High', 'Low', 'Close', 'Volume']].values
+    # Fetch stock data
+    st.write(f"Fetching data for {stock_ticker}...")
+    stock_data = yf.download(stock_ticker, period="1y", interval="1h")  # Modify the interval if needed
+
+    if stock_data.empty:
+        st.error("Failed to fetch stock data. Please check the ticker symbol.")
+        return
+
+    # Preprocess data
+    df = stock_data[['Open', 'High', 'Low', 'Close', 'Volume']]
+    scaler = MinMaxScaler()
+    scaled_data = scaler.fit_transform(df)
 
     sequence_length = 10
-    X = np.array([data[i:i+sequence_length] for i in range(len(data) - sequence_length)])
+    X = np.array([scaled_data[i:i+sequence_length] for i in range(len(scaled_data) - sequence_length)])
+    closing_prices = scaled_data[sequence_length:, 3]
+    y = np.where(closing_prices > scaled_data[:-sequence_length, 3], 1, 0)
 
-    closing_prices = data[sequence_length:, 3]
-    y = np.where(closing_prices > data[:-sequence_length, 3], 1, 0)
-
+    # Train-test split
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    model = Sequential()
-    model.add(Conv1D(filters=64, kernel_size=3, activation='relu', input_shape=(sequence_length, 5), padding='same'))
-    model.add(MaxPooling1D(pool_size=2))
-    model.add(Flatten())
-    model.add(Dense(64, activation='relu'))
-    model.add(Dense(1, activation='sigmoid'))
+    # Build the model
+    model = Sequential([
+        Conv1D(filters=64, kernel_size=3, activation='relu', input_shape=(sequence_length, 5), padding='same'),
+        MaxPooling1D(pool_size=2),
+        Flatten(),
+        Dense(64, activation='relu'),
+        Dense(1, activation='sigmoid')
+    ])
 
-    model.compile(optimizer='adam', loss='mse', metrics=['accuracy'])
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
-    model.fit(X_train, y_train, epochs=10, batch_size=64)
+    # Train the model
+    st.write("Training the model...")
+    history = model.fit(X_train, y_train, epochs=10, batch_size=64, verbose=1, validation_split=0.2)
 
-    _, accuracy = model.evaluate(X_test, y_test)
+    # Evaluate the model
+    loss, accuracy = model.evaluate(X_test, y_test, verbose=0)
     st.write(f"Accuracy: {accuracy:.4f}")
-    
-    st.pyplot(plt.figure(figsize=(10, 6)))
-    plt.plot(y_test, label='Actual Test Prices', color='green')
-    plt.plot(model.predict(X_test), label='Predicted Test Prices', color='blue')
-    plt.xlabel('Time')
-    plt.ylabel('Price Movement')
-    plt.title('Intraday Stock Prediction - Test vs. Predicted')
-    plt.legend()
-    
-    st.pyplot()
-    
 
+    # Plot accuracy and loss
+    plt.figure(figsize=(10, 6))
+    plt.plot(history.history['accuracy'], label='Train Accuracy')
+    plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy')
+    plt.title('Model Accuracy')
+    plt.legend()
+    st.pyplot()
+
+    # Predict and plot
+    y_pred = (model.predict(X_test) > 0.5).astype(int).flatten()
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(y_test, label='Actual Test Classes', color='green', alpha=0.6)
+    plt.plot(y_pred, label='Predicted Classes', color='blue', alpha=0.6)
+    plt.xlabel('Time Steps')
+    plt.ylabel('Class (0/1)')
+    plt.title('Actual vs Predicted Classes')
+    plt.legend()
+    st.pyplot()
+
+
+if __name__ == "__main__":
+    display_page()
