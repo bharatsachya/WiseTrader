@@ -1,58 +1,24 @@
-# Wise Trader
+### Wise Trader
 
-Predicting stock prices using machine learning models.
+WiseTrader is an interactive stock analysis tool built with Streamlit, offering various neural network models for stock prediction.
 
-## Table of Contents
+### 🚀 WiseTrader Pages
 
-- [Introduction](#introduction)
-- [Features](#features)
-- [Data](#data)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-- [Usage](#usage)
-- [Model Training](#model-training)
-- [Evaluation](#evaluation)
-- [Contributing](#contributing)
-- [License](#license)
-- [Acknowledgements](#acknowledgements)
+WiseTrader now features specialized pages for different neural network algorithms:
 
-## Introduction
+*   **Wise CNN**: [Link to Wise CNN documentation]
+    An advanced Convolutional Neural Network (CNN) model for stock prediction, trained on historical stock data to predict price movements. This model processes sequences of stock data to identify patterns.
 
-This project focuses on utilizing machine learning techniques to predict stock prices. It aims to provide insights into stock market trends and make predictions based on historical data.
+*   **Wise LSTM**: [Link to Wise LSTM documentation]
+    A Long Short-Term Memory (LSTM) recurrent neural network model specifically designed for time series forecasting. It predicts future stock prices based on historical closing prices, capturing long-term dependencies in the data.
 
-## Features
+*   **Wise RNN**: [Link to Wise RNN documentation - if applicable]
+    (Placeholder for future RNN documentation)
 
-- **Time Series Analysis**: Utilize time series data analysis to understand historical stock price trends.
-- **Machine Learning Models**: Implement machine learning models for stock price prediction.
-- **Visualization**: Visualize stock price predictions and trends for better understanding.
+### 🎯 Contributing
 
-## Data
+Contributions are welcome! Please refer to the [contribution guidelines](CONTRIBUTING.md) for more details.
 
-Explain where the data for your project comes from. This might include sources, data collection methods, and any preprocessing steps.
+***
 
-## Getting Started
-
-Provide instructions on how to get started with your project.
-
-### Prerequisites
-
-List the prerequisites that users need to install or have available before they can use your project. For example:
-
-- Python (version x.x.x)
-- Jupyter Notebook
-- Required Python libraries (NumPy, Pandas, Scikit-learn, etc.)
-
-### Installation
-
-Provide step-by-step instructions for setting up the project environment and installing dependencies. Include code snippets where necessary.
-
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/stock-prediction.git
-
-# Change to the project directory
-cd stock-prediction
-
-# Install required Python libraries
-pip install -r requirements.txt
+**GitHub:** [bharatsachya/WiseTrader](https://github.com/bharatsachya/WiseTrader)
