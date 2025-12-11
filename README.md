@@ -1,58 +1,121 @@
-# Wise Trader
+# WiseTrader: Stock Prediction with Neural Networks
 
-Predicting stock prices using machine learning models.
-
-## Table of Contents
-
-- [Introduction](#introduction)
-- [Features](#features)
-- [Data](#data)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-- [Usage](#usage)
-- [Model Training](#model-training)
-- [Evaluation](#evaluation)
-- [Contributing](#contributing)
-- [License](#license)
-- [Acknowledgements](#acknowledgements)
-
-## Introduction
-
-This project focuses on utilizing machine learning techniques to predict stock prices. It aims to provide insights into stock market trends and make predictions based on historical data.
+WiseTrader is a stock price prediction application that integrates various neural network algorithms and machine learning models, accessible via a Streamlit interface. This project aims to provide a platform for exploring different predictive models for stock market data.
 
 ## Features
 
-- **Time Series Analysis**: Utilize time series data analysis to understand historical stock price trends.
-- **Machine Learning Models**: Implement machine learning models for stock price prediction.
-- **Visualization**: Visualize stock price predictions and trends for better understanding.
-
-## Data
-
-Explain where the data for your project comes from. This might include sources, data collection methods, and any preprocessing steps.
+- **Streamlit Application**: An interactive web interface to select and run different prediction models.
+- **Neural Network Models**: Includes implementations for LSTM and CNN for time series prediction.
+- **Machine Learning Models**: Includes Logistic Regression for classification tasks in stock prediction.
+- **Feature Engineering**: A utility for generating various technical indicators for stock data.
 
 ## Getting Started
 
-Provide instructions on how to get started with your project.
-
 ### Prerequisites
 
-List the prerequisites that users need to install or have available before they can use your project. For example:
-
-- Python (version x.x.x)
-- Jupyter Notebook
-- Required Python libraries (NumPy, Pandas, Scikit-learn, etc.)
+Ensure you have Python 3.8+ installed.
 
 ### Installation
 
-Provide step-by-step instructions for setting up the project environment and installing dependencies. Include code snippets where necessary.
+1.  Clone the repository:
+    ```bash
+    git clone https://github.com/bharatsachya/WiseTrader.git
+    cd WiseTrader
+    ```
+2.  Install the required Python packages:
+    ```bash
+    pip install -r requirements.txt
+    ```
+    (Note: A `requirements.txt` file might need to be created based on the imported libraries like `streamlit`, `yfinance`, `numpy`, `pandas`, `scikit-learn`, `tensorflow`/`keras`, `matplotlib`, `seaborn`.)
+
+### Running the Application
+
+To start the WiseTrader Streamlit application, navigate to the project root directory and run:
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/stock-prediction.git
+streamlit run home.py
+```
 
-# Change to the project directory
-cd stock-prediction
+This will open the application in your web browser, typically at `http://localhost:8501`.
 
-# Install required Python libraries
-pip install -r requirements.txt
+## Application Usage (`home.py`)
+
+The `home.py` script serves as the main entry point for the WiseTrader Streamlit application. It provides:
+
+- **Stock Watcher**: A live display of stock data for a given ticker.
+- **Page Navigation**: A sidebar to switch between different prediction models (Wise CNN, Wise LSTM).
+
+### Stock Watcher
+
+On the `home.py` landing page, you can enter a stock ticker (e.g., `NV20.NS` for Nifty 20, `AAPL` for Apple) to view its real-time 'Open', 'High', 'Low', 'Close', and 'Volume' data for the current day, refreshed every minute.
+
+### Navigating Prediction Models
+
+Use the 'Select Page' dropdown in the sidebar to choose a specific prediction model:
+
+- **Wise CNN**: Navigate to `pages/wise_cnn.py` to view CNN-based stock predictions.
+- **Wise LSTM**: Navigate to `pages/wise_lstm.py` to view LSTM-based stock predictions.
+- **Wise RNN**: (Placeholder, functionality to be added/documented when implemented).
+
+Follow the instructions on each page to input stock tickers, dates (where applicable), and view the model's performance and predictions.
+
+## Models Overview
+
+### Wise CNN (`pages/wise_cnn.py`)
+
+This page implements a Convolutional Neural Network (CNN) for stock price prediction. The CNN model uses `Conv1D`, `MaxPooling1D`, `Flatten`, and `Dense` layers to identify patterns in sequences of stock data. It predicts whether the closing price will go up or down, framed as a binary classification problem.
+
+**Key Steps:**
+1.  **Data Fetching**: Fetches 1 year of hourly stock data using `yfinance`.
+2.  **Preprocessing**: Scales `Open`, `High`, `Low`, `Close`, `Volume` data using `MinMaxScaler`.
+3.  **Sequence Creation**: Transforms scaled data into sequences for CNN input, with a `sequence_length` of 10.
+4.  **Model Training**: Trains a `Sequential` CNN model on historical data.
+5.  **Prediction & Visualization**: Evaluates the model and displays a confusion matrix and classification report.
+
+Upon selecting this page, you can input a stock ticker, and the application will train and evaluate the CNN model, displaying performance metrics and a forecast accuracy plot.
+
+### Wise LSTM (`pages/wise_lstm.py`)
+
+This page utilizes a Long Short-Term Memory (LSTM) recurrent neural network for stock price prediction. LSTMs are well-suited for time series data due to their ability to capture long-term dependencies. The model learns from historical 'Close' prices to forecast future prices.
+
+**Key Steps:**
+1.  **Data Fetching**: Downloads historical stock data for a specified ticker and date range (`2010-01-01` to `2023-01-01` by default).
+2.  **Preprocessing**: Normalizes 'Close' prices using `MinMaxScaler`.
+3.  **Sequence Creation**: Converts data into time sequences with a `seq_length` of 10 for LSTM input.
+4.  **Model Training**: Trains a `Sequential` LSTM model.
+5.  **Prediction & Visualization**: Makes predictions on test data and plots actual vs. predicted prices.
+
+On this page, you can enter a stock ticker and define start/end dates to analyze the LSTM model's predictions.
+
+### `logistic_regression.py`
+
+This script provides a `StockLogisticModel` class for binary classification of stock price movement (up or down). It uses logistic regression combined with technical indicators generated by `StockFeatureEngineer`.
+
+**Class: `StockLogisticModel`**
+-   **`__init__(self, df)`**: Initializes the model with a DataFrame containing stock data.
+-   **`prepare_data(self)`**: Creates a binary 'Target' (1 if next day's close > today's close) and defines feature columns, ensuring no data leakage.
+-   **`train(self, test_size=0.2)`**: Splits data into training/testing sets (sequentially), scales features using `StandardScaler`, and trains a `LogisticRegression` model.
+-   **`evaluate(self)`**: Generates a `classification_report`, `accuracy_score`, and `confusion_matrix` from test predictions. It also plots the confusion matrix.
+
+Currently, this model is a standalone script and is not integrated into the `home.py` Streamlit application. It's intended for offline analysis or future integration.
+
+### `stock.py` - Stock Feature Engineering
+
+This utility script defines the `StockFeatureEngineer` class, designed to add various technical indicators to a stock data DataFrame. It's crucial for generating features for machine learning models.
+
+**Class: `StockFeatureEngineer`**
+-   **`__init__(self, df)`**: Initializes with a DataFrame (expected to have `Date`, `Open`, `High`, `Low`, `Close`, `Volume` columns). Ensures `Date` is a datetime index and column names are standardized to lowercase.
+-   **`add_moving_averages(self, windows=[20, 50, 200])`**: Adds Simple Moving Averages (SMA) and Exponential Moving Averages (EMA) for specified window sizes.
+-   **`add_rsi(self, window=14)`**: Calculates and adds the Relative Strength Index (RSI).
+-   **`add_macd(self, fast=12, slow=26, signal=9)`**: Computes and adds Moving Average Convergence Divergence (MACD), MACD Signal Line, and MACD Histogram.
+-   **`add_bollinger_bands(self, window=20, num_std_dev=2)`**: Adds Bollinger Bands (Upper, Middle, Lower).
+-   **`add_volume_indicators(self, window=14)`**: Adds On-Balance Volume (OBV) and Accumulation/Distribution Line (ADL).
+-   **`add_lagged_features(self, lags=[1, 2, 3])`**: Adds lagged 'Close' prices as features.
+-   **`add_return_features(self)`**: Adds daily and weekly percentage returns.
+-   **`add_volatility(self, window=20)`**: Calculates and adds historical volatility.
+
+This class is designed to be chained for feature generation, as seen in `logistic_regression.py`.
+
+## Contributing
+
+Contributions are welcome! Please feel free to open issues or submit pull requests.
