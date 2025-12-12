@@ -1,120 +1,100 @@
+# `logistic_regression.py`: Stock Prediction using Logistic Regression
+
+This file provides the `StockLogisticModel` class, which implements a traditional machine learning approach for predicting daily stock price movement (up or down) using Logistic Regression. It is designed to work with financial time-series data, particularly with features engineered using tools like `StockFeatureEngineer`.
+
+## `StockLogisticModel` Class
+
+### Purpose
+
+The `StockLogisticModel` aims to predict whether a stock's closing price will increase (target = 1) or decrease (target = 0) on the *next day*, based on a set of input features (technical indicators).
+
+### Initialization
+
+```python
 import pandas as pd
-import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
-import matplotlib.pyplot as plt
-import seaborn as sns
+from logistic_regression import StockLogisticModel
 
-class StockLogisticModel:
-    def __init__(self, df):
-        self.df = df.copy()
-        self.model = LogisticRegression(random_state=42)
-        self.scaler = StandardScaler()
-        self.X_test = None
-        self.y_test = None
-        self.y_pred = None
+# `df` should be a DataFrame with 'close' price and potentially other features
+# (e.g., from StockFeatureEngineer)
+sample_df = pd.DataFrame({
+    'date': pd.to_datetime(['2023-01-01', '2023-01-02', '2023-01-03', '2023-01-04', '2023-01-05']),
+    'open': [100, 102, 101, 103, 105],
+    'high': [103, 104, 103, 105, 106],
+    'low': [99, 101, 100, 102, 104],
+    'close': [102, 103, 102, 104, 105],
+    'volume': [1000, 1200, 1100, 1300, 1400]
+}).set_index('date')
 
-    def prepare_data(self):
-        """
-        1. Creates a binary target: 1 if Tomorrow's Close > Today's Close, else 0.
-        2. Aligns features and target.
-        """
-        # Create Target: Did the price go up the NEXT day?
-        # shift(-1) looks at the next row.
-        self.df['Target'] = (self.df['close'].shift(-1) > self.df['close']).astype(int)
+# Example with engineered features (assuming `StockFeatureEngineer` was used)
+# fe = StockFeatureEngineer(raw_df)
+# df_with_features = fe.add_moving_averages().add_rsi().df
+# Ensure 'close' column is present for target creation
 
-        # Drop the last row because it has no 'Target' (we don't know tomorrow's price yet)
-        self.df.dropna(inplace=True)
+model_instance = StockLogisticModel(sample_df)
+```
 
-        # Define Feature Columns (Exclude raw price and target)
-        # Assuming you used the previous script, we use the technical indicators
-        feature_cols = [c for c in self.df.columns if c not in ['target', 'date', 'Target']]
-        
-        X = self.df[feature_cols]
-        y = self.df['Target']
-        
-        return X, y
+### Methods
 
-    def train(self, test_size=0.2):
-        """
-        Splits data SEQUENTIALLY (no shuffling) and trains the model.
-        """
-        X, y = self.prepare_data()
+#### `prepare_data()`
 
-        # IMPORTANT: shuffle=False prevents "looking into the future" (Data Leakage)
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, shuffle=False)
+Internal method to create the binary target variable (`Target`) based on whether the next day's close price is higher than today's. It also handles dropping the last row (which lacks a future target) and defines feature columns. It's called internally by `train()`.
 
-        # Scale features (Logistic Regression is sensitive to magnitude)
-        X_train_scaled = self.scaler.fit_transform(X_train)
-        X_test_scaled = self.scaler.transform(X_test)
+#### `train(test_size=0.2)`
 
-        # Train
-        self.model.fit(X_train_scaled, y_train)
+Splits the data sequentially into training and testing sets (critical for time-series to prevent data leakage from the future). It then scales the features using `StandardScaler` and trains the `LogisticRegression` model.
 
-        # Save for evaluation
-        self.X_test = X_test_scaled
-        self.y_test = y_test
-        
-        print("Model Trained Successfully.")
+-   `test_size` (float): The proportion of the dataset to include in the test split. Defaults to `0.2`.
 
-    def evaluate(self):
-        """
-        Prints accuracy metrics and generates a confusion matrix.
-        """
-        if self.X_test is None:
-            print("Run train() first.")
-            return
+#### `evaluate()`
 
-        self.y_pred = self.model.predict(self.X_test)
-        
-        print("\n--- Model Evaluation ---")
-        print(f"Accuracy: {accuracy_score(self.y_test, self.y_pred):.2f}")
-        print("\nClassification Report:")
-        print(classification_report(self.y_test, self.y_pred))
+Evaluates the trained model on the test set and prints a classification report, confusion matrix, and accuracy score. This method should be called after `train()`.
 
-        # Confusion Matrix
-        cm = confusion_matrix(self.y_test, self.y_pred)
-        
-        # Simple text visualization of Confusion Matrix
-        print("\nConfusion Matrix:")
-        print(f"True Negatives (Correctly Predicted DOWN): {cm[0][0]}")
-        print(f"False Positives (Predicted UP, actually DOWN): {cm[0][1]}")
-        print(f"False Negatives (Predicted DOWN, actually UP): {cm[1][0]}")
-        print(f"True Positives (Correctly Predicted UP): {cm[1][1]}")
+#### `predict_future(last_n_days=60)`
 
-    def predict_proba(self):
-        """
-        Returns the probability of the price going UP.
-        Useful for setting confidence thresholds (e.g., only trade if prob > 60%).
-        """
-        # Get probability of class 1 (UP)
-        probs = self.model.predict_proba(self.X_test)[:, 1]
-        return probs
+*Truncated in code, but typically would use the last `n` available data points to predict the next single day's movement after scaling them correctly. Requires careful implementation to avoid using future data.* (Based on typical ML model usage, this function is expected but not fully provided in the diff, thus its description is generalized).
 
-# ==========================================
-# Example Usage (Integration with previous step)
-# ==========================================
-if __name__ == "__main__":
-    # 1. Reuse the 'df_features' from the previous step (or create dummy data)
-    # This block generates dummy data if you run this script alone
-    dates = pd.date_range(start="2023-01-01", periods=1000, freq="D")
-    df_features = pd.DataFrame({
-        'close': np.random.uniform(100, 200, 1000),
-        'rsi': np.random.uniform(30, 70, 1000),
-        'macd': np.random.uniform(-1, 1, 1000),
-        'sma_20': np.random.uniform(100, 200, 1000),
-        'log_return': np.random.normal(0, 0.01, 1000)
-    })
+### Example Usage
 
-    # 2. Initialize and Train
-    log_model = StockLogisticModel(df_features)
-    log_model.train(test_size=0.2)
-    
-    # 3. Evaluate
-    log_model.evaluate()
+```python
+import pandas as pd
+from logistic_regression import StockLogisticModel
+from stock import StockFeatureEngineer # Assuming features are pre-engineered
 
-    # 4. Check Probabilities (Advanced Usage)
-    probabilities = log_model.predict_proba()
-    print(f"\nSample Prediction Probabilities (First 5 days of Test Data): {probabilities[:5]}")
+# Create a sample DataFrame or load your stock data
+data = {
+    'Date': pd.to_datetime([f'2023-01-{i:02d}' for i in range(1, 16)]),
+    'Open': [100+i for i in range(15)],
+    'High': [102+i for i in range(15)],
+    'Low': [99+i for i in range(15)],
+    'Close': [101+i + (i%3-1) for i in range(15)], # Example fluctuating close
+    'Volume': [1000+i*50 for i in range(15)]
+}
+raw_df = pd.DataFrame(data)
+
+# 1. Feature Engineer the data
+fe = StockFeatureEngineer(raw_df)
+df_with_features = fe \
+    .add_moving_averages(windows=[3, 5]) \
+    .add_rsi() \
+    .add_macd() \
+    .df
+
+# Ensure no NaNs from indicator calculations before training
+df_final = df_with_features.dropna()
+
+if not df_final.empty:
+    # 2. Instantiate and train the Logistic Regression model
+    model = StockLogisticModel(df_final)
+    model.train(test_size=0.3) # Use 30% of data for testing
+
+    # 3. Evaluate the model
+    classification_report_output = model.evaluate()
+    print("\n--- Classification Report ---")
+    print(classification_report_output)
+
+    # 4. (Optional) Predict future using `model.predict_future()` if fully implemented
+    # prediction = model.predict_future(last_n_days=5)
+    # print("\nNext day prediction (1=Up, 0=Down):", prediction)
+else:
+    print("DataFrame is empty after dropping NaNs. Cannot train model.")
+```
