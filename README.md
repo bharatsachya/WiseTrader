@@ -1,58 +1,53 @@
-# Wise Trader
+# WiseTrader
 
-Predicting stock prices using machine learning models.
-
-## Table of Contents
-
-- [Introduction](#introduction)
-- [Features](#features)
-- [Data](#data)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-- [Usage](#usage)
-- [Model Training](#model-training)
-- [Evaluation](#evaluation)
-- [Contributing](#contributing)
-- [License](#license)
-- [Acknowledgements](#acknowledgements)
-
-## Introduction
-
-This project focuses on utilizing machine learning techniques to predict stock prices. It aims to provide insights into stock market trends and make predictions based on historical data.
+WiseTrader is an application designed to demonstrate and implement various machine learning and deep learning models for stock price prediction and analysis. It features a Streamlit-based user interface that allows users to interactively analyze stock data and run different prediction algorithms.
 
 ## Features
 
-- **Time Series Analysis**: Utilize time series data analysis to understand historical stock price trends.
-- **Machine Learning Models**: Implement machine learning models for stock price prediction.
-- **Visualization**: Visualize stock price predictions and trends for better understanding.
-
-## Data
-
-Explain where the data for your project comes from. This might include sources, data collection methods, and any preprocessing steps.
+*   **Stock Watcher**: Real-time stock data fetching and display.
+*   **Neural Network Models**: Implementations of CNN, LSTM, and potentially RNN for stock price trend prediction.
+*   **Classical ML Models**: Includes Logistic Regression for predicting stock movement.
+*   **Feature Engineering**: Utility to generate technical indicators for comprehensive analysis.
 
 ## Getting Started
 
-Provide instructions on how to get started with your project.
-
 ### Prerequisites
 
-List the prerequisites that users need to install or have available before they can use your project. For example:
-
-- Python (version x.x.x)
-- Jupyter Notebook
-- Required Python libraries (NumPy, Pandas, Scikit-learn, etc.)
+Ensure you have Python 3.8+ installed.
 
 ### Installation
 
-Provide step-by-step instructions for setting up the project environment and installing dependencies. Include code snippets where necessary.
+1.  Clone the repository:
+    ```bash
+    git clone https://github.com/bharatsachya/WiseTrader.git
+    cd WiseTrader
+    ```
+
+2.  Install the required Python packages:
+    ```bash
+    pip install -r requirements.txt # (assuming a requirements.txt will be created)
+    # Alternatively, install manually:
+    # pip install streamlit yfinance numpy pandas scikit-learn tensorflow keras matplotlib seaborn
+    ```
+
+### Running the Application
+
+To start the WiseTrader Streamlit application, navigate to the project root and run:
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/stock-prediction.git
+streamlit run home.py
+```
 
-# Change to the project directory
-cd stock-prediction
+This will open the application in your web browser. You can then interact with the different stock prediction pages.
 
-# Install required Python libraries
-pip install -r requirements.txt
+## Project Structure
+
+*   `home.py`: The main Streamlit application entry point.
+*   `pages/`: Contains individual Streamlit pages for different models (e.g., `wise_cnn.py`, `wise_lstm.py`).
+*   `Lstm.py`: Standalone script demonstrating an LSTM model for stock prediction.
+*   `logistic_regression.py`: Standalone script for Logistic Regression based stock prediction.
+*   `stock.py`: Utility for stock feature engineering.
+
+## Contributing
+
+Contributions are welcome! Please refer to the contribution guidelines.
