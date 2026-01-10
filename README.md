@@ -1,58 +1,70 @@
-# Wise Trader
+# WiseTrader: A Stock Prediction Platform
 
-Predicting stock prices using machine learning models.
-
-## Table of Contents
-
-- [Introduction](#introduction)
-- [Features](#features)
-- [Data](#data)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-- [Usage](#usage)
-- [Model Training](#model-training)
-- [Evaluation](#evaluation)
-- [Contributing](#contributing)
-- [License](#license)
-- [Acknowledgements](#acknowledgements)
-
-## Introduction
-
-This project focuses on utilizing machine learning techniques to predict stock prices. It aims to provide insights into stock market trends and make predictions based on historical data.
+WiseTrader is a comprehensive platform that leverages various neural network algorithms and machine learning models for stock price prediction and analysis. This application provides different pages to explore predictions using models like Convolutional Neural Networks (CNN), Long Short-Term Memory (LSTM) networks, and traditional Logistic Regression.
 
 ## Features
 
-- **Time Series Analysis**: Utilize time series data analysis to understand historical stock price trends.
-- **Machine Learning Models**: Implement machine learning models for stock price prediction.
-- **Visualization**: Visualize stock price predictions and trends for better understanding.
-
-## Data
-
-Explain where the data for your project comes from. This might include sources, data collection methods, and any preprocessing steps.
+- **Stock Watcher**: Real-time stock data fetching and display.
+- **Wise CNN**: Predict stock movements using a Convolutional Neural Network model.
+- **Wise LSTM**: Utilize Long Short-Term Memory networks for time-series stock prediction.
+- **Wise RNN**: (Planned/Placeholder, functionality to be integrated via `home.py`)
+- **Feature Engineering**: A utility to generate various technical indicators for stock data.
+- **Logistic Regression Model**: A traditional machine learning model for predicting stock direction.
 
 ## Getting Started
 
-Provide instructions on how to get started with your project.
+### 1. Installation
 
-### Prerequisites
-
-List the prerequisites that users need to install or have available before they can use your project. For example:
-
-- Python (version x.x.x)
-- Jupyter Notebook
-- Required Python libraries (NumPy, Pandas, Scikit-learn, etc.)
-
-### Installation
-
-Provide step-by-step instructions for setting up the project environment and installing dependencies. Include code snippets where necessary.
+To run WiseTrader locally, you'll need Python 3.x installed. First, clone the repository:
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/stock-prediction.git
+git clone https://github.com/bharatsachya/WiseTrader.git
+cd WiseTrader
+```
 
-# Change to the project directory
-cd stock-prediction
+Then, install the required Python packages. It's highly recommended to use a virtual environment:
 
-# Install required Python libraries
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows use `venv\Scripts\activate`
 pip install -r requirements.txt
+```
+
+*(Note: A `requirements.txt` file is assumed to be present with all necessary dependencies like `streamlit`, `yfinance`, `numpy`, `pandas`, `scikit-learn`, `tensorflow`/`keras`, `matplotlib`, `seaborn`.)*
+
+### 2. Usage
+
+WiseTrader is built with Streamlit, making it easy to run and interact with the application.
+
+To start the application, navigate to the project root directory and run:
+
+```bash
+streamlit run home.py
+```
+
+This command will open the WiseTrader application in your web browser, typically at `http://localhost:8501`.
+
+### 3. Navigating the Application
+
+Once the application is running:
+
+- **Stock Watcher (Home Page)**: Enter a stock ticker (e.g., `AAPL`, `NV20.NS`) to view its current 1-minute interval data.
+- **Sidebar Navigation**: Use the sidebar on the left to select different prediction models:
+    - **Wise CNN**: Access the Convolutional Neural Network prediction page.
+    - **Wise LSTM**: Access the Long Short-Term Memory prediction page.
+    - **Wise RNN**: (A placeholder; functionality will be similar to CNN/LSTM pages once implemented and linked).
+
+### 4. Contributing
+
+Contributions are welcome! If you'd like to contribute, please fork the repository and submit a pull request.
+
+---
+
+## Project Structure Overview
+
+- `home.py`: The main Streamlit application entry point.
+- `pages/wise_cnn.py`: Implements the Streamlit page for CNN-based stock prediction.
+- `pages/wise_lstm.py`: Implements the Streamlit page for LSTM-based stock prediction.
+- `Lstm.py`: A standalone script demonstrating a basic LSTM model without Streamlit integration.
+- `logistic_regression.py`: A standalone class for stock prediction using Logistic Regression.
+- `stock.py`: A utility class for generating technical indicators and features from stock data.

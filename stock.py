@@ -1,129 +1,129 @@
+# `stock.py`: Stock Feature Engineering Utility
+
+This file defines the `StockFeatureEngineer` class, a utility designed to generate a comprehensive set of technical indicators and features from raw stock market data. These features can then be used as input for various machine learning or neural network models for prediction and analysis.
+
+## `StockFeatureEngineer` Class
+
+### Purpose
+
+The `StockFeatureEngineer` class takes a pandas DataFrame of stock data (expected to have 'Date', 'Open', 'High', 'Low', 'Close', 'Volume' columns) and enriches it by adding several commonly used technical indicators.
+
+### Initialization
+
+```python
 import pandas as pd
-import numpy as np
+from stock import StockFeatureEngineer
 
-class StockFeatureEngineer:
-    """
-    A class to generate technical indicators and features for stock market data.
-    Expects a DataFrame with columns: ['Date', 'Open', 'High', 'Low', 'Close', 'Volume']
-    """
+# Example DataFrame (ensure 'Date' is present and convertible to datetime)
+sample_df = pd.DataFrame({
+    'Date': pd.to_datetime(['2023-01-01', '2023-01-02', '2023-01-03', '2023-01-04', '2023-01-05']),
+    'Open': [100, 102, 101, 103, 105],
+    'High': [103, 104, 103, 105, 106],
+    'Low': [99, 101, 100, 102, 104],
+    'Close': [102, 103, 102, 104, 105],
+    'Volume': [1000, 1200, 1100, 1300, 1400]
+})
 
-    def __init__(self, df):
-        # Create a copy to avoid SettingWithCopy warnings
-        self.df = df.copy()
-        
-        # Ensure Date is datetime and set as index if not already
-        if 'Date' in self.df.columns:
-            self.df['Date'] = pd.to_datetime(self.df['Date'])
-            self.df.set_index('Date', inplace=True)
-            
-        # Ensure standard column names (case-insensitive handling)
-        self.df.columns = [x.lower() for x in self.df.columns]
+feature_engineer = StockFeatureEngineer(sample_df)
+```
 
-    def add_moving_averages(self, windows=[20, 50, 200]):
-        """Adds Simple and Exponential Moving Averages."""
-        for w in windows:
-            self.df[f'sma_{w}'] = self.df['close'].rolling(window=w).mean()
-            self.df[f'ema_{w}'] = self.df['close'].ewm(span=w, adjust=False).mean()
-        return self
+### Methods
 
-    def add_rsi(self, window=14):
-        """Adds Relative Strength Index (RSI)."""
-        delta = self.df['close'].diff()
-        gain = (delta.where(delta > 0, 0)).rolling(window=window).mean()
-        loss = (-delta.where(delta < 0, 0)).rolling(window=window).mean()
+#### `add_moving_averages(windows=[20, 50, 200])`
 
-        rs = gain / loss
-        self.df['rsi'] = 100 - (100 / (1 + rs))
-        
-        # Fill NaN for the first 'window' rows
-        self.df['rsi'] = self.df['rsi'].fillna(50)
-        return self
+Adds Simple Moving Averages (SMA) and Exponential Moving Averages (EMA) for specified window periods.
 
-    def add_macd(self, fast=12, slow=26, signal=9):
-        """Adds MACD, Signal Line, and Histogram."""
-        exp1 = self.df['close'].ewm(span=fast, adjust=False).mean()
-        exp2 = self.df['close'].ewm(span=slow, adjust=False).mean()
-        
-        self.df['macd'] = exp1 - exp2
-        self.df['macd_signal'] = self.df['macd'].ewm(span=signal, adjust=False).mean()
-        self.df['macd_hist'] = self.df['macd'] - self.df['macd_signal']
-        return self
+-   `windows` (list of int): A list of window sizes for which to calculate the MAs. Defaults to `[20, 50, 200]`.
 
-    def add_bollinger_bands(self, window=20, num_std=2):
-        """Adds Upper, Middle, and Lower Bollinger Bands."""
-        sma = self.df['close'].rolling(window=window).mean()
-        std = self.df['close'].rolling(window=window).std()
-        
-        self.df['bb_upper'] = sma + (std * num_std)
-        self.df['bb_lower'] = sma - (std * num_std)
-        self.df['bb_width'] = (self.df['bb_upper'] - self.df['bb_lower']) / sma
-        return self
+    *Returns:* `self` for method chaining.
 
-    def add_atr(self, window=14):
-        """Adds Average True Range (ATR) for volatility."""
-        high_low = self.df['high'] - self.df['low']
-        high_close = np.abs(self.df['high'] - self.df['close'].shift())
-        low_close = np.abs(self.df['low'] - self.df['close'].shift())
-        
-        ranges = pd.concat([high_low, high_close, low_close], axis=1)
-        true_range = np.max(ranges, axis=1)
-        
-        self.df['atr'] = true_range.rolling(window=window).mean()
-        return self
+#### `add_rsi(window=14)`
 
-    def add_volume_indicators(self):
-        """Adds On-Balance Volume (OBV) and VWAP."""
-        # OBV
-        self.df['obv'] = (np.sign(self.df['close'].diff()) * self.df['volume']).fillna(0).cumsum()
-        
-        # VWAP (Cumulative for simplicity, usually resets daily/session in strict trading)
-        cum_vol = self.df['volume'].cumsum()
-        cum_vol_price = (self.df['close'] * self.df['volume']).cumsum()
-        self.df['vwap'] = cum_vol_price / cum_vol
-        return self
+Adds the Relative Strength Index (RSI).
 
-    def add_returns(self):
-        """Adds Daily Log Returns (preferred for ML)."""
-        self.df['log_return'] = np.log(self.df['close'] / self.df['close'].shift(1))
-        return self
+-   `window` (int): The period over which to calculate RSI. Defaults to `14`.
 
-    def get_features(self):
-        """Executes all methods and returns the cleaned DataFrame."""
-        self.add_moving_averages()
-        self.add_rsi()
-        self.add_macd()
-        self.add_bollinger_bands()
-        self.add_atr()
-        self.add_volume_indicators()
-        self.add_returns()
-        
-        # Drop rows with NaN values created by rolling windows (e.g., first 200 rows)
-        return self.df.dropna()
+    *Returns:* `self`.
 
-# ==========================================
-# Example Usage
-# ==========================================
-if __name__ == "__main__":
-    # 1. Generate Dummy Data
-    dates = pd.date_range(start="2023-01-01", periods=500, freq="D")
-    data = {
-        "Date": dates,
-        "Open": np.random.uniform(100, 200, 500),
-        "High": np.random.uniform(100, 200, 500),
-        "Low": np.random.uniform(100, 200, 500),
-        "Close": np.random.uniform(100, 200, 500),
-        "Volume": np.random.randint(1000, 100000, 500)
-    }
-    
-    # Fix High/Low logic for realism
-    df_raw = pd.DataFrame(data)
-    df_raw['High'] = df_raw[['Open', 'Close']].max(axis=1) + 2
-    df_raw['Low'] = df_raw[['Open', 'Close']].min(axis=1) - 2
+#### `add_macd(fast=12, slow=26, signal=9)`
 
-    # 2. Run Feature Engineering
-    engineer = StockFeatureEngineer(df_raw)
-    df_features = engineer.get_features()
+Adds Moving Average Convergence Divergence (MACD), MACD Signal Line, and MACD Histogram.
 
-    print("Features Generated Successfully:")
-    print(df_features[['close', 'rsi', 'macd', 'bb_upper', 'atr']].tail())
-    print(f"\nTotal Shape: {df_features.shape}")
+-   `fast` (int): The period for the fast EMA. Defaults to `12`.
+-   `slow` (int): The period for the slow EMA. Defaults to `26`.
+-   `signal` (int): The period for the MACD Signal Line EMA. Defaults to `9`.
+
+    *Returns:* `self`.
+
+#### `add_bollinger_bands(window=20, num_std=2)`
+
+Adds Bollinger Bands (Middle Band, Upper Band, Lower Band).
+
+-   `window` (int): The period for the Moving Average. Defaults to `20`.
+-   `num_std` (int): The number of standard deviations for the upper and lower bands. Defaults to `2`.
+
+    *Returns:* `self`.
+
+#### `add_stochastic_oscillator(k_window=14, d_window=3)`
+
+Adds Stochastic Oscillator (%K and %D).
+
+-   `k_window` (int): The period for %K. Defaults to `14`.
+-   `d_window` (int): The period for %D (SMA of %K). Defaults to `3`.
+
+    *Returns:* `self`.
+
+#### `add_volatility(window=20)`
+
+Adds historical volatility (standard deviation of log returns).
+
+-   `window` (int): The period for calculating volatility. Defaults to `20`.
+
+    *Returns:* `self`.
+
+#### `add_volume_features()`
+
+Adds volume-based features: Volume Moving Average and Volume Change.
+
+    *Returns:* `self`.
+
+#### `add_lagged_features(lags=[1, 2, 3])`
+
+Adds lagged closing prices as features.
+
+-   `lags` (list of int): A list of lag periods. Defaults to `[1, 2, 3]`.
+
+    *Returns:* `self`.
+
+### Example Usage
+
+```python
+import pandas as pd
+from stock import StockFeatureEngineer
+
+# Create a sample DataFrame (replace with actual stock data loading)
+data = {
+    'Date': pd.to_datetime(['2023-01-01', '2023-01-02', '2023-01-03', '2023-01-04', '2023-01-05', '2023-01-06', '2023-01-07', '2023-01-08']),
+    'Open': [100, 102, 101, 103, 105, 104, 106, 105],
+    'High': [103, 104, 103, 105, 106, 105, 107, 106],
+    'Low': [99, 101, 100, 102, 104, 103, 105, 104],
+    'Close': [102, 103, 102, 104, 105, 104, 106, 105],
+    'Volume': [1000, 1200, 1100, 1300, 1400, 1150, 1350, 1200]
+}
+df = pd.DataFrame(data)
+
+# Initialize the feature engineer and chain methods to add features
+fe = StockFeatureEngineer(df)
+df_with_features = fe \
+    .add_moving_averages(windows=[5, 10]) \
+    .add_rsi(window=7) \
+    .add_macd() \
+    .add_bollinger_bands() \
+    .add_stochastic_oscillator() \
+    .add_volatility() \
+    .add_volume_features() \
+    .add_lagged_features() \
+    .df
+
+print(df_with_features.tail())
+```
