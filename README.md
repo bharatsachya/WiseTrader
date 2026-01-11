@@ -1,58 +1,59 @@
-# Wise Trader
+# WiseTrader: Advanced Stock Price Prediction
 
-Predicting stock prices using machine learning models.
-
-## Table of Contents
-
-- [Introduction](#introduction)
-- [Features](#features)
-- [Data](#data)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-- [Usage](#usage)
-- [Model Training](#model-training)
-- [Evaluation](#evaluation)
-- [Contributing](#contributing)
-- [License](#license)
-- [Acknowledgements](#acknowledgements)
-
-## Introduction
-
-This project focuses on utilizing machine learning techniques to predict stock prices. It aims to provide insights into stock market trends and make predictions based on historical data.
+WiseTrader is an interactive application designed for stock market analysis and prediction, leveraging various machine learning and deep learning models. This application provides a centralized Streamlit interface to explore different predictive algorithms, enabling users to gain insights into potential stock price movements.
 
 ## Features
 
-- **Time Series Analysis**: Utilize time series data analysis to understand historical stock price trends.
-- **Machine Learning Models**: Implement machine learning models for stock price prediction.
-- **Visualization**: Visualize stock price predictions and trends for better understanding.
-
-## Data
-
-Explain where the data for your project comes from. This might include sources, data collection methods, and any preprocessing steps.
+- **Streamlit Web Application**: An intuitive and interactive web interface to access all predictive models.
+- **Multiple Prediction Models**: Explore and utilize a range of algorithms for stock price forecasting:
+    - **Convolutional Neural Network (CNN)**: For pattern recognition in time series data.
+    - **Long Short-Term Memory (LSTM)**: Specialized recurrent neural network for sequence prediction.
+    - **Recurrent Neural Network (RNN)**: General-purpose model for sequential data.
+    - **Logistic Regression**: A classical machine learning approach for binary classification (e.g., price up/down).
+    - **Random Forest**: (Implied by commit message) An ensemble learning method for robust predictions.
+- **Real-time Data Fetching**: Integrates with `yfinance` to fetch live and historical stock data.
+- **Stock Watcher**: A basic utility to view live stock data for a given ticker.
 
 ## Getting Started
 
-Provide instructions on how to get started with your project.
-
 ### Prerequisites
 
-List the prerequisites that users need to install or have available before they can use your project. For example:
-
-- Python (version x.x.x)
-- Jupyter Notebook
-- Required Python libraries (NumPy, Pandas, Scikit-learn, etc.)
-
-### Installation
-
-Provide step-by-step instructions for setting up the project environment and installing dependencies. Include code snippets where necessary.
+To run WiseTrader, you will need Python 3.x and the following libraries:
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/stock-prediction.git
+pip install streamlit yfinance numpy pandas scikit-learn tensorflow keras matplotlib seaborn
+```
 
-# Change to the project directory
-cd stock-prediction
+### Running the Application
 
-# Install required Python libraries
-pip install -r requirements.txt
+1.  **Clone the repository** (if you haven't already):
+    ```bash
+    git clone https://github.com/bharatsachya/WiseTrader.git
+    cd WiseTrader
+    ```
+
+2.  **Run the Streamlit application**:
+    ```bash
+    streamlit run home.py
+    ```
+
+    This will open the WiseTrader application in your web browser.
+
+## How to Use
+
+Upon launching the application, you will see the `WiseTrader` homepage. From the sidebar on the left, you can select different prediction models:
+
+-   **Stock Watcher**: Enter a stock ticker (e.g., `NV20.NS`, `AAPL`) to view its current Open, High, Low, Close, and Volume data.
+-   **Wise CNN**: Navigate to this page to use the Convolutional Neural Network model for stock prediction. You can input a stock ticker, and the model will provide predictions based on its training.
+-   **Wise LSTM**: Select this option to utilize the Long Short-Term Memory model. Here, you can specify a stock symbol and date range for historical data analysis and prediction.
+-   **Wise RNN**: (Future/Implied) This section will host a Recurrent Neural Network model for stock analysis.
+
+Each model page will guide you through its specific inputs and display its predictions or analysis results.
+
+## Contact
+
+-   **GitHub**: [bharatsachya/WiseTrader](https://github.com/bharatsachya/WiseTrader)
+
+## Contributing
+
+We welcome contributions! Please feel free to open issues or submit pull requests.
