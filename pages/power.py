@@ -9,7 +9,7 @@ from scipy.optimize import minimize
 
 np.random.seed(42)
 
-hours = 200
+hours = 100
 
 data = pd.DataFrame({
     "demand": np.random.normal(1000, 100, hours),
