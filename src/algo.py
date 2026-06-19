@@ -12,7 +12,7 @@ from tensorflow.keras.optimizers import Adam
 # -----------------------------
 # 1. DATA LOADING
 # -----------------------------
-def load_data(symbol="AAPL", start="2015-01-01"):
+def load_data(symbol="AAPL", start="2025-01-01"):
     df = yf.download(symbol, start=start)
     df.dropna(inplace=True)
     return df
