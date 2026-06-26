@@ -7,13 +7,13 @@ import plotly.graph_objects as go
 import streamlit as st
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, LSTM, Dropout
+from tensorflow.keras.layers import Dense, SimpleRNN, GRU, Dropout
 
 def display_page():
-    st.title('🧠 Stock Price Forecasting Using LSTM')
+    st.title('🧠 Stock Price Forecasting Using RNN & GRU')
     st.markdown("""
-    This module uses a **Long Short-Term Memory (LSTM)** Recurrent Neural Network to forecast stock prices.
-    LSTMs are designed to capture long-term temporal dependencies in time-series data, making them ideal for modeling sequential stock prices.
+    This module uses standard **Recurrent Neural Networks (RNN)** or **Gated Recurrent Units (GRU)** to predict stock prices.
+    Comparing these models with the LSTM demonstrates how different recurrent topologies learn temporal dependencies.
     """)
 
     st.markdown("---")
@@ -22,15 +22,16 @@ def display_page():
     st.subheader("⚙️ Model Configuration")
     h_col1, h_col2, h_col3 = st.columns(3)
     with h_col1:
-        stock_symbol = st.text_input('Stock Ticker Symbol', value='AAPL', key='lstm_ticker').upper().strip()
-        start_date = st.date_input('Start Date', pd.to_datetime('2015-01-01'), key='lstm_start')
-        end_date = st.date_input('End Date', pd.to_datetime('2024-01-01'), key='lstm_end')
+        stock_symbol = st.text_input('Stock Ticker Symbol', value='AAPL', key='rnn_ticker').upper().strip()
+        start_date = st.date_input('Start Date', pd.to_datetime('2015-01-01'), key='rnn_start')
+        end_date = st.date_input('End Date', pd.to_datetime('2024-01-01'), key='rnn_end')
     with h_col2:
-        lookback = st.slider('Lookback Window (Sequence length)', min_value=10, max_value=100, value=60, step=5, key='lstm_lookback')
-        epochs = st.slider('Training Epochs', min_value=5, max_value=50, value=15, step=5, key='lstm_epochs')
+        model_type = st.selectbox('Recurrent Layer Type', ['GRU', 'SimpleRNN'], index=0, key='rnn_layer_type')
+        lookback = st.slider('Lookback Window (Sequence length)', min_value=10, max_value=100, value=60, step=5, key='rnn_lookback')
     with h_col3:
-        batch_size = st.select_slider('Batch Size', options=[16, 32, 64, 128], value=32, key='lstm_batch')
-        test_split = st.slider('Testing Split Size (%)', min_value=10, max_value=30, value=20, step=5, key='lstm_split') / 100.0
+        epochs = st.slider('Training Epochs', min_value=5, max_value=50, value=15, step=5, key='rnn_epochs')
+        batch_size = st.select_slider('Batch Size', options=[16, 32, 64, 128], value=32, key='rnn_batch')
+        test_split = st.slider('Testing Split Size (%)', min_value=10, max_value=30, value=20, step=5, key='rnn_split') / 100.0
 
     st.markdown("---")
 
@@ -67,26 +68,31 @@ def display_page():
     X, y = create_sequences(scaled_data, lookback)
     X = np.reshape(X, (X.shape[0], X.shape[1], 1))
 
-    # Split sequentially (no shuffling to prevent look-ahead bias)
+    # Split sequentially
     split_index = int(len(X) * (1 - test_split))
     X_train, X_test = X[:split_index], X[split_index:]
     y_train, y_test = y[:split_index], y[split_index:]
 
     st.info(f"Data ready. Training Samples: {X_train.shape[0]} | Testing Samples: {X_test.shape[0]}")
 
-    # Build LSTM Model
-    model = Sequential([
-        LSTM(units=50, return_sequences=True, input_shape=(lookback, 1)),
-        Dropout(0.2),
-        LSTM(units=50, return_sequences=False),
-        Dropout(0.2),
-        Dense(units=1)
-    ])
+    # Build Model
+    model = Sequential()
+    if model_type == 'GRU':
+        model.add(GRU(units=50, return_sequences=True, input_shape=(lookback, 1)))
+        model.add(Dropout(0.2))
+        model.add(GRU(units=50, return_sequences=False))
+    else:
+        model.add(SimpleRNN(units=50, return_sequences=True, input_shape=(lookback, 1)))
+        model.add(Dropout(0.2))
+        model.add(SimpleRNN(units=50, return_sequences=False))
+        
+    model.add(Dropout(0.2))
+    model.add(Dense(units=1))
 
     model.compile(optimizer='adam', loss='mean_squared_error')
 
     # Train model
-    with st.spinner("Training LSTM network..."):
+    with st.spinner(f"Training {model_type} network..."):
         model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, verbose=0)
 
     # Predict on test data
@@ -110,7 +116,7 @@ def display_page():
     est_change = next_day_price - last_price
     est_pct = (est_change / last_price) * 100
 
-    st.subheader("📊 Price Prediction Results")
+    st.subheader(f"📊 {model_type} Forecast Results")
     
     c1, c2 = st.columns([1, 2])
     with c1:
@@ -119,7 +125,7 @@ def display_page():
         delta_sign = "+" if est_change >= 0 else ""
         st.markdown(f"""
         <div class="metric-card" style="margin-top: 15px;">
-            <div class="metric-label">Estimated Next Close</div>
+            <div class="metric-label">Estimated Next Close ({model_type})</div>
             <div class="metric-value">${next_day_price:.2f}</div>
             <div class="metric-delta {delta_class}">{delta_sign}${est_change:.2f} ({delta_sign}{est_pct:.2f}%)</div>
         </div>
@@ -138,7 +144,7 @@ def display_page():
         test_dates = df.index[lookback + split_index:]
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=test_dates, y=y_test_unscaled.flatten(), name='Actual Close Price', line=dict(color='#A0AEC0', width=1.5)))
-        fig.add_trace(go.Scatter(x=test_dates, y=predictions.flatten(), name='LSTM Forecast', line=dict(color='#00FFCC', width=1.5)))
+        fig.add_trace(go.Scatter(x=test_dates, y=predictions.flatten(), name=f'{model_type} Forecast', line=dict(color='#0077FF', width=1.5)))
         fig.update_layout(
             title=f'{stock_symbol} Out-of-Sample Forecasting vs Actual',
             xaxis_title='Date',
